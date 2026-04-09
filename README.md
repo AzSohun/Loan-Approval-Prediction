@@ -44,8 +44,6 @@ As per the exam requirements, the following steps were implemented:
 
 ## 💻 How to Run Locally
 
-## How to Run
-
 1. Install dependencies:
 pip install -r requirements.txt
 
