@@ -1,3 +1,5 @@
+# !pip install gradio scikit-learn pandas matplotlib seaborn joblib
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,13 +12,11 @@ from sklearn.impute import SimpleImputer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 import joblib
-import gradio as gr
 
 
 df = pd.read_csv("loan_predication.csv")
 
 print(df)
-
 
 print("Dataset Shape:", df.shape)
 print(df.head())
@@ -35,6 +35,7 @@ y = df['Loan_Status'].map({'Y': 1, 'N': 0}) # Encoding target
 # Identify column types
 numeric_features = ['LoanAmount', 'Loan_Amount_Term', 'Total_Income']
 categorical_features = ['Gender', 'Married', 'Dependents', 'Education', 'Self_Employed', 'Property_Area', 'Credit_History']
+
 
 numeric_transformer = Pipeline(steps=[
     ('imputer', SimpleImputer(strategy='median')),
@@ -66,8 +67,6 @@ clf.fit(X_train, y_train)
 print("Model trained successfully.")
 
 
-
-
 cv_scores = cross_val_score(clf, X_train, y_train, cv=5)
 print(f"Mean CV Accuracy: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
 
@@ -92,34 +91,3 @@ print("\nClassification Report:\n", classification_report(y_test, y_pred))
 
 # Save the model for deployment
 joblib.dump(best_model, 'loan_model.pkl')
-
-
-
-
-def predict_loan(gender, married, dependents, education, self_employed, loan_amt, term, credit_hist, property_area, income):
-    
-    # Create a dataframe for the input
-    input_data = pd.DataFrame([[gender, married, dependents, education, self_employed, loan_amt, term, credit_hist, property_area, income]],
-                              columns=['Gender', 'Married', 'Dependents', 'Education', 'Self_Employed', 'LoanAmount', 'Loan_Amount_Term', 'Credit_History', 'Property_Area', 'Total_Income'])
-    
-    prediction = best_model.predict(input_data)
-    return "Approved" if prediction[0] == 1 else "Rejected"
-
-inputs = [
-    gr.Dropdown(['Male', 'Female'], label="Gender"),
-    gr.Dropdown(['Yes', 'No'], label="Married"),
-    gr.Dropdown(['0', '1', '2', '3+'], label="Dependents"),
-    gr.Dropdown(['Graduate', 'Not Graduate'], label="Education"),
-    gr.Dropdown(['Yes', 'No'], label="Self Employed"),
-    gr.Number(label="Loan Amount"),
-    gr.Number(label="Loan Amount Term"),
-    gr.Dropdown([1.0, 0.0], label="Credit History"),
-    gr.Dropdown(['Urban', 'Semiurban', 'Rural'], label="Property Area"),
-    gr.Number(label="Total Monthly Income")
-]
-
-interface = gr.Interface(fn=predict_loan, inputs=inputs, outputs="text", title="Loan Approval Predictor")
-interface.launch(share=True)
-
-
-
